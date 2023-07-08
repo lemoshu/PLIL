@@ -25,7 +25,7 @@ python train_PLIL_voting_3D.py --labeled_num {HQ num} --gpu 0 --root_path {path/
 3. Test script 
 ```
 cd ./code
-python test_3D.py
+python test_3D.py --exp {path/to/exp/folder} --model vnet_MTPD_voting
 ```
 
 ## Citation
