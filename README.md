@@ -19,7 +19,7 @@ Refer to ./data for various HQ-LQ label simulation.
 2. Training script
 ```
 cd ./code
-python train_PLIL_3D.py --labeled_num {HQ num} --gpu 0 --root_path {path/to/simulated folder}
+python train_PLIL_voting_3D.py --labeled_num {HQ num} --gpu 0 --root_path {path/to/simulated folder}
 ```
 
 3. Test script 
