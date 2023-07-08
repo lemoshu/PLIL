@@ -1,6 +1,8 @@
 # PLIL
 Towards Expert-Amateur Collaboration: Prototypical Label Isolation Learning for Left Atrium Segmentation with Mixed-Quality Labels
 
+![Python 3.6](https://img.shields.io/badge/python-3.6-green.svg)
+
 ## Abstract
 Deep learning-based medical image segmentation usually requires abundant high-quality labeled data from experts, yet, it is often infeasible in clinical practice. Without sufficient expert-examined labels, the supervised approaches often struggle with inferior performance. Unfortunately, directly introducing additional data with low-quality cheap annotations (e.g., crowdsourcing from non-experts) may confuse the training. To address this, we propose a Prototypical Label Isolation Learning (PLIL) framework to robustly learn left atrium segmentation from scarce high-quality labeled data and massive low-quality labeled data, which enables effective expert-amateur collaboration. Particularly, PLIL is built upon the popular teacher-student framework. Considering the structural characteristics that the semantic regions of the same class are often highly correlated and the higher noise tolerance in the high-level feature space, the self-ensembling teacher model isolates clean and noisy labeled voxels by exploiting their relative feature distances to the class prototypes via multi-scale voting. Then, the student follows the teacher's instruction for adaptive learning, wherein the clean voxels are introduced as supervised signals and the noisy ones are regularized via perturbed stability learning, considering their large intra-class variation. 
 
