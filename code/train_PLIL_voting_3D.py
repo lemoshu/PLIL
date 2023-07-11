@@ -222,58 +222,37 @@ def train(args, snapshot_path):
             rect_ema_output_onehot = torch.argmax(rect_ema_output_soft, dim=1) 
             
             # 3 Prototype Generation and Distance Calculation
-            # obj prototype and dist (ft to obj prototype, pixel-wise)
             obj_confidence = ema_output_soft[:, 1, ...].unsqueeze(1)
-            obj_prototype0 = getPrototype(ema_ft0, rect_ema_output_onehot, obj_confidence) 
-            distance_f_obj0 = calDist(ema_ft0, rect_ema_output_onehot, obj_prototype0) 
-            
-            # bg prototype and dist (ft to bg prototype, pixel-wise)
             bg_confidence = ema_output_soft[:, 0, ...].unsqueeze(1)
             rect_bg_ema_output_onehot = (rect_ema_output_onehot == 0)
-            bg_prototype0 = getPrototype(ema_ft0, rect_bg_ema_output_onehot, bg_confidence)      
-            distance_f_bg0 = calDist(ema_ft0, rect_bg_ema_output_onehot, bg_prototype0)  
-
-            # 4 Compare and Generate Selection Mask
-            proto_selection_mask_bg0 = torch.zeros([LQ_label_batch.shape[0], 1, LQ_label_batch.shape[1], LQ_label_batch.shape[2], LQ_label_batch.shape[3]]).cuda()
-            proto_selection_mask_obj0 = torch.zeros([LQ_label_batch.shape[0], 1, LQ_label_batch.shape[1], LQ_label_batch.shape[2], LQ_label_batch.shape[3]]).cuda()
             
-            proto_selection_mask_bg0[distance_f_obj0>distance_f_bg0] = 1.0
-            proto_selection_mask_obj0[distance_f_obj0<distance_f_bg0] = 1.0
-            proto_selection_mask0 = torch.cat((proto_selection_mask_bg0, proto_selection_mask_obj0), dim=1)
+            # Initialize lists to store the results
+            obj_prototypes = []
+            bg_prototypes = []
+            proto_selection_masks = []
             
-            
-            # for 2nd
-            obj_prototype1 = getPrototype(ema_ft1, rect_ema_output_onehot, obj_confidence) 
-            distance_f_obj1 = calDist(ema_ft1, rect_ema_output_onehot, obj_prototype1) 
-
-            bg_prototype1 = getPrototype(ema_ft1, rect_bg_ema_output_onehot, bg_confidence)        
-            distance_f_bg1 = calDist(ema_ft1, rect_bg_ema_output_onehot, bg_prototype1)  
-
-            # 4 Compare and Generate Selection Mask
-            proto_selection_mask_bg1 = torch.zeros([LQ_label_batch.shape[0], 1, LQ_label_batch.shape[1], LQ_label_batch.shape[2], LQ_label_batch.shape[3]]).cuda()
-            proto_selection_mask_obj1 = torch.zeros([LQ_label_batch.shape[0], 1, LQ_label_batch.shape[1], LQ_label_batch.shape[2], LQ_label_batch.shape[3]]).cuda()
-            
-            proto_selection_mask_bg1[distance_f_obj1>distance_f_bg1] = 1.0
-            proto_selection_mask_obj1[distance_f_obj1<distance_f_bg1] = 1.0
-            proto_selection_mask1 = torch.cat((proto_selection_mask_bg1, proto_selection_mask_obj1), dim=1)
-
-            # for 3rd
-            obj_prototype2 = getPrototype(ema_ft2, rect_ema_output_onehot, obj_confidence) 
-            distance_f_obj2 = calDist(ema_ft2, rect_ema_output_onehot, obj_prototype2) 
-
-            bg_prototype2 = getPrototype(ema_ft2, rect_bg_ema_output_onehot, bg_confidence)        
-            distance_f_bg2 = calDist(ema_ft2, rect_bg_ema_output_onehot, bg_prototype2)  
-
-            # 4 Compare and Generate Selection Mask
-            proto_selection_mask_bg2 = torch.zeros([LQ_label_batch.shape[0], 1, LQ_label_batch.shape[1], LQ_label_batch.shape[2], LQ_label_batch.shape[3]]).cuda()
-            proto_selection_mask_obj2 = torch.zeros([LQ_label_batch.shape[0], 1, LQ_label_batch.shape[1], LQ_label_batch.shape[2], LQ_label_batch.shape[3]]).cuda()
-            
-            proto_selection_mask_bg2[distance_f_obj2>distance_f_bg2] = 1.0
-            proto_selection_mask_obj2[distance_f_obj2<distance_f_bg2] = 1.0
-            proto_selection_mask2 = torch.cat((proto_selection_mask_bg2, proto_selection_mask_obj2), dim=1)
+            for i in range(3):
+                obj_prototype = getPrototype(eval(f'ema_ft{i}'), rect_ema_output_onehot, obj_confidence)
+                distance_f_obj = calDist(eval(f'ema_ft{i}'), rect_ema_output_onehot, obj_prototype)
+                
+                bg_prototype = getPrototype(eval(f'ema_ft{i}'), rect_bg_ema_output_onehot, bg_confidence)
+                distance_f_bg = calDist(eval(f'ema_ft{i}'), rect_bg_ema_output_onehot, bg_prototype)
+                
+                proto_selection_mask_bg = torch.zeros([LQ_label_batch.shape[0], 1, LQ_label_batch.shape[1], LQ_label_batch.shape[2], LQ_label_batch.shape[3]]).cuda()
+                proto_selection_mask_obj = torch.zeros([LQ_label_batch.shape[0], 1, LQ_label_batch.shape[1], LQ_label_batch.shape[2], LQ_label_batch.shape[3]]).cuda()
+                
+                proto_selection_mask_bg[distance_f_obj>distance_f_bg] = 1.0
+                proto_selection_mask_obj[distance_f_obj<distance_f_bg] = 1.0       
+                
+                proto_selection_mask = torch.cat((proto_selection_mask_bg, proto_selection_mask_obj), dim=1) 
+                
+                # store the results in the lists
+                obj_prototypes.append(obj_prototype)
+                bg_prototypes.append(bg_prototype)
+                proto_selection_masks.append(proto_selection_mask)        
             
             # voting
-            proto_selection_mask = proto_selection_mask0 + proto_selection_mask1 + proto_selection_mask2
+            proto_selection_mask = sum(proto_selection_masks)
             proto_selection_mask[proto_selection_mask < 2] = 0.0            
             proto_selection_mask[proto_selection_mask >= 2] = 1.0
             #print('vote for:', torch.sum(proto_selection_mask, dim=(2, 3, 4)))
