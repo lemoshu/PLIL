@@ -1,5 +1,5 @@
 # PLIL
-Towards Expert-Amateur Collaboration: Prototypical Label Isolation Learning for Left Atrium Segmentation with Mixed-Quality Labels
+MICCAI'23: Towards Expert-Amateur Collaboration: Prototypical Label Isolation Learning for Left Atrium Segmentation with Mixed-Quality Labels
 
 ![Python 3.6](https://img.shields.io/badge/python-3.6-green.svg)
 
