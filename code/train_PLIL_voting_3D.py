@@ -104,11 +104,10 @@ def calDist(fts, mask, prototype):
     Calculate the distance between features and prototypes
     """
     fts_adj_size = F.interpolate(fts, size=mask.shape[-3:], mode='trilinear')
-    prototype_new = prototype.unsqueeze(2)
-    prototype_new = prototype_new.unsqueeze(3)
-    prototype_new = prototype_new.unsqueeze(4)
+    prototype_new = prototype.unsqueeze(2).unsqueeze(3).unsqueeze(4)
     dist = torch.sum(torch.pow(fts_adj_size - prototype_new, 2), dim=1, keepdim=True)
     return dist
+
 
 def train(args, snapshot_path):
     base_lr = args.base_lr
