@@ -58,8 +58,8 @@ parser.add_argument('--gpu', type=str, default='0',
 # label and unlabel
 parser.add_argument('--labeled_bs', type=int, default=2,
                     help='labeled_batch_size per gpu')
-parser.add_argument('--labeled_num', type=int, default=6, # Change the HQ num
-                    help='labeled data')
+parser.add_argument('--HQ_labeled_num', type=int, default=6, # Change the HQ num
+                    help='HQ labeled data')
 parser.add_argument('--total_sample', type=int, default=80,
                     help='total samples')
 # costs
@@ -141,8 +141,8 @@ def train(args, snapshot_path):
     def worker_init_fn(worker_id):
         random.seed(args.seed + worker_id)
 
-    labeled_idxs = list(range(0, args.labeled_num))
-    unlabeled_idxs = list(range(args.labeled_num, args.total_sample))
+    labeled_idxs = list(range(0, args.HQ_labeled_num))
+    unlabeled_idxs = list(range(args.HQ_labeled_num, args.total_sample))
     batch_sampler = TwoStreamBatchSampler(
         labeled_idxs, unlabeled_idxs, batch_size, batch_size-args.labeled_bs)
 
@@ -377,7 +377,7 @@ if __name__ == "__main__":
     torch.cuda.manual_seed(args.seed)
 
     snapshot_path = "../model/{}_{}/{}".format(
-        args.exp, args.labeled_num, args.model)
+        args.exp, args.HQ_labeled_num, args.model)
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
     if os.path.exists(snapshot_path + '/code'):
